@@ -6,6 +6,7 @@ pip install docker-compose
 
 安装:
 docker-compose pull
+
 docker-compose up --build -d
 
 容器停止:
