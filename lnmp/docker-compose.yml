@@ -1,0 +1,43 @@
+version: '2'
+services:
+  nginx:
+    build:
+      context: ./nginx
+    container_name: nginx
+    restart: always
+    volumes:
+      - web-data:/var/www/
+    ports:
+      - 80:80
+    networks:
+      - front
+  php:
+    build:
+      context: ./php
+    container_name: php-fpm
+    restart: always
+    volumes:
+      - web-data:/var/www
+      - ./php/php.ini:/usr/local/etc/php/conf.d/php.ini
+    networks:
+      - front
+      - back
+  db:
+    image: mariadb
+    container_name: mariadb
+    restart: always
+    volumes:
+      - database:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+    networks:
+      - back
+volumes:
+  web-data:
+    driver: local
+  database:
+    driver: local
+networks:
+  front:
+  back:
+
