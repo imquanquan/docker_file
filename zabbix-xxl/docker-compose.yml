@@ -1,0 +1,57 @@
+version: "3"
+
+services:
+
+    zabbix-server:
+        image:
+            monitoringartist/zabbix-xxl:latest
+        container_name:
+            zabbix-server
+        ports:
+            - "80:80"
+            - "10051:10051"
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+        depends_on:
+            - zabbix-db
+        environment:
+            - ZS_DBHost=zabbix-db
+            - ZS_DBUser=zabbix
+            - ZS_DBPassword=my_password
+        networks:
+            - zabbix
+
+    zabbix-db:
+        image:
+            monitoringartist/zabbix-db-mariadb
+        container_name:
+            zabbix-db
+        volumes:
+            - /backups:/backups
+            - /etc/localtime:/etc/localtime:ro
+            - data:/var/lib/mysql
+        depends_on:
+            - zabbix-db-storage 
+        environment:
+            - MARIADB_USER=zabbix
+            - MARIADB_PASS=my_password
+        networks:
+            - zabbix
+    
+    zabbix-db-storage:
+        image:
+            busybox:latest
+        container_name:
+            zabbix-db-storage
+        volumes:
+            - data:/var/lib/mysql
+
+volumes:
+    data:
+
+              
+networks:
+    zabbix:
+
+
+
