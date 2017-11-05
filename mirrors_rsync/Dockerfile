@@ -1,23 +1,26 @@
-FROM ubuntu:latest
+# BUILD Stage
+FROM alpine:latest AS builder
 
 LABEL maintainer="imquanquan <imquanquan99@gmail.com>"
 
-RUN apt-get update && \
-	apt-get -y install --no-install-recommends \
-		virtualenv rsync cron\
-	&& \
-	apt-get clean && \
-	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+RUN apk update && apk add --no-cache git && rm -rf /var/cache/apk/*
+RUN git clone https://github.com/SCAULUG/Mirrors-Scripts.git
 
-RUN virtualenv --python=python3.5 bandersnatch  && \
-		bandersnatch/bin/pip install -r https://bitbucket.org/pypa/bandersnatch/raw/stable/requirements.txt 
 
-COPY ./rsync-cron /etc/cron.d/rsync-cron
-COPY ./default.conf /etc/bandersnatch.conf
-COPY ./Mirrors-Scripts /Mirrors-Scripts
+# DIST Stage
+FROM alpine:latest
 
-RUN chmod 0644 /etc/cron.d/rsync-cron
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+RUN apk update && apk add --no-cache dcron bash rsync python3 && rm -rf /var/cache/apk/*
+
+RUN pip3 install -r https://bitbucket.org/pypa/bandersnatch/raw/stable/requirements.txt
 RUN touch /var/log/pypi.log
 RUN mkdir /mirrors
 
-CMD cron && tail -f /var/log/pypi.log
+
+COPY --from=builder /Mirrors-Scripts /Mirrors-Scripts
+COPY ./default.conf /etc/bandersnatch.conf
+COPY ./rsync-cron /etc/crontabs/root
+
+CMD crond && tail -f /var/log/pypi.log
