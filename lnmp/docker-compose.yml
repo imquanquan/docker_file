@@ -4,8 +4,11 @@ services:
     build:
       context: ./nginx
     container_name: nginx
+    depends_on:
+      - db
+      - php
     volumes:
-      - web-data:/var/www/
+      - web-data:/var/www
     ports:
       - 80:80
     networks:
